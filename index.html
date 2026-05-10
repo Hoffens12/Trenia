@@ -558,6 +558,100 @@
     box-shadow: 0 8px 32px rgba(0,0,0,0.6);
   }
 
+  /* Auth & Groups */
+  .header-right { display: flex; gap: 8px; align-items: center; }
+  .auth-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .auth-btn:active { transform: scale(0.96); }
+  .auth-btn img { width: 22px; height: 22px; border-radius: 50%; }
+
+  .group-card {
+    background: var(--card-2);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .group-card:active { transform: scale(0.98); }
+  .group-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .group-card-name { font-weight: 700; font-size: 16px; }
+  .group-card-code {
+    font-size: 11px;
+    color: var(--text-faint);
+    font-family: monospace;
+    letter-spacing: 2px;
+  }
+  .group-card-stats { font-size: 12px; color: var(--text-dim); }
+
+  .group-code-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    margin: 16px 0;
+  }
+  .group-code-label {
+    font-size: 12px; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .group-code-value {
+    font-size: 32px; font-weight: 900;
+    letter-spacing: 6px; font-family: monospace;
+    color: #ffffff;
+  }
+  .group-code-hint { font-size: 12px; color: var(--text-faint); margin-top: 8px; }
+
+  .member-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .member-row:last-child { border-bottom: none; }
+  .member-rank {
+    width: 28px; font-weight: 800; text-align: center;
+    font-size: 14px; color: var(--text-dim);
+  }
+  .member-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--card);
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+    font-size: 18px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .member-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .member-info { flex: 1; min-width: 0; }
+  .member-name { font-weight: 600; font-size: 14px; }
+  .member-sub { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+  .member-xp { font-weight: 800; color: #ffffff; font-size: 14px; }
+
+  .signin-prompt { text-align: center; padding: 24px 8px; }
+  .signin-prompt-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .signin-prompt-sub { color: var(--text-dim); font-size: 14px; margin-bottom: 16px; }
+
   .btn {
     width: 100%;
     padding: 14px;
@@ -762,7 +856,10 @@
       <div class="logo-icon">⚡</div>
       <span>Trenia</span>
     </div>
-    <div class="streak-pill" id="streakPill">🔥 <span id="streakNum">0</span> dager</div>
+    <div class="header-right">
+      <div class="streak-pill" id="streakPill">🔥 <span id="streakNum">0</span></div>
+      <button class="auth-btn" id="authBtn" onclick="handleAuthClick()">Logg inn</button>
+    </div>
   </header>
 
   <div class="level-card">
@@ -786,7 +883,8 @@
 
   <div class="tabs">
     <button class="tab active" data-view="home">Hjem</button>
-    <button class="tab" data-view="stats">Statistikk</button>
+    <button class="tab" data-view="stats">Stat.</button>
+    <button class="tab" data-view="groups">Grupper</button>
     <button class="tab" data-view="trophies">Trofé</button>
   </div>
 
@@ -846,6 +944,11 @@
       <div class="card-title">Per aktivitet</div>
       <div id="perActivityStats"></div>
     </div>
+  </div>
+
+  <!-- GROUPS VIEW -->
+  <div class="view" id="view-groups">
+    <div id="groupsContent"></div>
   </div>
 
   <!-- TROPHIES VIEW -->
@@ -965,6 +1068,75 @@
     <button class="btn btn-secondary" onclick="closeModal('activityModal')" style="margin-top: 8px;">Avbryt</button>
   </div>
 </div>
+
+<!-- Create Group Modal -->
+<div class="modal-bg" id="createGroupModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Lag ny gruppe</div>
+    <div class="modal-sub">Inviter venner med koden du får etter</div>
+    <div class="form-group">
+      <label class="form-label">Gruppenavn</label>
+      <input type="text" class="form-input" id="newGroupName" placeholder="F.eks. Håndballaget" maxlength="30">
+    </div>
+    <button class="btn btn-primary" onclick="createGroup()">Opprett</button>
+    <button class="btn btn-secondary" onclick="closeModal('createGroupModal')" style="margin-top:8px;">Avbryt</button>
+  </div>
+</div>
+
+<!-- Join Group Modal -->
+<div class="modal-bg" id="joinGroupModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Bli med i gruppe</div>
+    <div class="modal-sub">Skriv inn koden du fikk fra et gruppemedlem</div>
+    <div class="form-group">
+      <label class="form-label">Gruppekode</label>
+      <input type="text" class="form-input" id="joinGroupCode" placeholder="ABC123" maxlength="6" style="text-transform: uppercase; letter-spacing: 4px; text-align: center; font-family: monospace; font-size: 22px;">
+    </div>
+    <button class="btn btn-primary" onclick="joinGroup()">Bli med</button>
+    <button class="btn btn-secondary" onclick="closeModal('joinGroupModal')" style="margin-top:8px;">Avbryt</button>
+  </div>
+</div>
+
+<!-- Group Detail Modal -->
+<div class="modal-bg" id="groupDetailModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="groupDetailContent"></div>
+  </div>
+</div>
+
+<!-- Firebase (Auth + Firestore) -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, addDoc, deleteDoc, serverTimestamp, increment, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBvcbjUpy9_V2dYm0rXJvPYZ_GwPpbuaW0",
+  authDomain: "trenia-88985.firebaseapp.com",
+  projectId: "trenia-88985",
+  storageBucket: "trenia-88985.firebasestorage.app",
+  messagingSenderId: "93438072524",
+  appId: "1:93438072524:web:7b9507077e9f7849561469"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.FB = {
+  auth, db,
+  GoogleAuthProvider, signInWithPopup, signOut,
+  doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, addDoc, deleteDoc, increment, arrayUnion, arrayRemove
+};
+window.FB_READY = true;
+
+onAuthStateChanged(auth, (user) => {
+  window.currentUser = user;
+  if (window.onAuthChange) window.onAuthChange(user);
+});
+</script>
 
 <script>
 //// ========== STATE ==========
@@ -1402,6 +1574,7 @@ function saveLog() {
   }
 
   save();
+  if (currentUserData) syncUserStats().catch(e => console.warn(e));
 
   closeModal('logModal');
 
@@ -1595,6 +1768,7 @@ document.querySelectorAll('.tab').forEach(t => {
     document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
     t.classList.add('active');
     document.getElementById('view-' + t.dataset.view).classList.add('active');
+    if (t.dataset.view === 'groups') renderGroupsView();
   });
 });
 
@@ -1625,6 +1799,298 @@ document.querySelectorAll('.modal-bg').forEach(m => {
     if (e.target === m) m.classList.remove('show');
   });
 });
+
+//// ========== FIREBASE / AUTH / GROUPS ==========
+let currentUserData = null;
+let groupsCache = [];
+
+function handleAuthClick() {
+  if (window.currentUser) {
+    if (confirm('Logge ut?')) {
+      window.FB.signOut(window.FB.auth);
+    }
+  } else {
+    if (!window.FB_READY) { showToast('Kobler til...', false); return; }
+    signInWithGoogle();
+  }
+}
+
+async function signInWithGoogle() {
+  try {
+    const provider = new window.FB.GoogleAuthProvider();
+    await window.FB.signInWithPopup(window.FB.auth, provider);
+  } catch(err) {
+    console.error(err);
+    showToast('Innlogging feilet: ' + (err.code || err.message), false);
+  }
+}
+
+window.onAuthChange = async function(user) {
+  const authBtn = document.getElementById('authBtn');
+  if (!user) {
+    currentUserData = null;
+    groupsCache = [];
+    if (authBtn) authBtn.innerHTML = 'Logg inn';
+    if (document.getElementById('view-groups').classList.contains('active')) renderGroupsView();
+    return;
+  }
+  if (authBtn) {
+    authBtn.innerHTML = user.photoURL
+      ? `<img src="${user.photoURL}" alt=""> Logg ut`
+      : `${escapeHtml((user.displayName || 'Bruker').split(' ')[0])} ⤴`;
+  }
+  try {
+    const userRef = window.FB.doc(window.FB.db, 'users', user.uid);
+    const snap = await window.FB.getDoc(userRef);
+    if (!snap.exists()) {
+      currentUserData = {
+        uid: user.uid,
+        displayName: user.displayName || 'Bruker',
+        photoURL: user.photoURL || null,
+        email: user.email,
+        groupIds: [],
+        totalXp: data.totalXp || 0,
+        createdAt: new Date().toISOString()
+      };
+      await window.FB.setDoc(userRef, currentUserData);
+    } else {
+      currentUserData = { uid: user.uid, ...snap.data() };
+      await window.FB.updateDoc(userRef, {
+        displayName: user.displayName || currentUserData.displayName,
+        photoURL: user.photoURL || currentUserData.photoURL || null,
+        lastActive: new Date().toISOString()
+      });
+    }
+    await syncUserStats();
+    await loadGroups();
+    showToast('Logget inn!', true);
+    if (document.getElementById('view-groups').classList.contains('active')) renderGroupsView();
+  } catch(err) {
+    console.error('Auth setup failed', err);
+    showToast('Firebase-feil: ' + (err.code || ''), false);
+  }
+};
+
+async function syncUserStats() {
+  if (!currentUserData) return;
+  try {
+    const userRef = window.FB.doc(window.FB.db, 'users', currentUserData.uid);
+    await window.FB.updateDoc(userRef, {
+      totalXp: data.totalXp,
+      currentStreak: data.currentStreak,
+      bestStreak: data.bestStreak,
+      lastActive: new Date().toISOString()
+    });
+    for (const gid of currentUserData.groupIds || []) {
+      const memberRef = window.FB.doc(window.FB.db, 'groups', gid, 'members', currentUserData.uid);
+      await window.FB.setDoc(memberRef, {
+        uid: currentUserData.uid,
+        displayName: currentUserData.displayName,
+        photoURL: currentUserData.photoURL || null,
+        totalXp: data.totalXp,
+        currentStreak: data.currentStreak,
+        lastActive: new Date().toISOString()
+      }, { merge: true });
+    }
+  } catch(e) { console.warn('Sync failed', e); }
+}
+
+async function loadGroups() {
+  if (!currentUserData) return;
+  groupsCache = [];
+  for (const gid of currentUserData.groupIds || []) {
+    try {
+      const gSnap = await window.FB.getDoc(window.FB.doc(window.FB.db, 'groups', gid));
+      if (gSnap.exists()) groupsCache.push({ id: gid, ...gSnap.data() });
+    } catch(e){}
+  }
+}
+
+function genGroupCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s = '';
+  for (let i = 0; i < 6; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+}
+
+async function createGroup() {
+  if (!currentUserData) { showToast('Logg inn først', false); return; }
+  const name = document.getElementById('newGroupName').value.trim();
+  if (!name) { showToast('Skriv inn et navn', false); return; }
+  try {
+    const code = genGroupCode();
+    const groupRef = await window.FB.addDoc(window.FB.collection(window.FB.db, 'groups'), {
+      name, code, ownerId: currentUserData.uid, memberCount: 1,
+      createdAt: new Date().toISOString()
+    });
+    await window.FB.setDoc(window.FB.doc(window.FB.db, 'groups', groupRef.id, 'members', currentUserData.uid), {
+      uid: currentUserData.uid,
+      displayName: currentUserData.displayName,
+      photoURL: currentUserData.photoURL || null,
+      totalXp: data.totalXp,
+      joinedAt: new Date().toISOString()
+    });
+    await window.FB.updateDoc(window.FB.doc(window.FB.db, 'users', currentUserData.uid), {
+      groupIds: window.FB.arrayUnion(groupRef.id)
+    });
+    currentUserData.groupIds = [...(currentUserData.groupIds || []), groupRef.id];
+    groupsCache.push({ id: groupRef.id, name, code, ownerId: currentUserData.uid, memberCount: 1 });
+    closeModal('createGroupModal');
+    document.getElementById('newGroupName').value = '';
+    showToast('Gruppe opprettet!', true);
+    renderGroupsView();
+    setTimeout(() => openGroupDetail(groupRef.id), 300);
+  } catch(err) {
+    console.error(err);
+    showToast('Feil: ' + (err.code || ''), false);
+  }
+}
+
+async function joinGroup() {
+  if (!currentUserData) { showToast('Logg inn først', false); return; }
+  const code = document.getElementById('joinGroupCode').value.trim().toUpperCase();
+  if (!code || code.length !== 6) { showToast('Koden må være 6 tegn', false); return; }
+  try {
+    const snap = await window.FB.getDocs(
+      window.FB.query(window.FB.collection(window.FB.db, 'groups'), window.FB.where('code', '==', code))
+    );
+    if (snap.empty) { showToast('Fant ingen gruppe', false); return; }
+    const groupDoc = snap.docs[0];
+    const groupId = groupDoc.id;
+    const groupData = groupDoc.data();
+    if ((currentUserData.groupIds || []).includes(groupId)) {
+      showToast('Du er allerede med', false);
+      closeModal('joinGroupModal');
+      return;
+    }
+    await window.FB.setDoc(window.FB.doc(window.FB.db, 'groups', groupId, 'members', currentUserData.uid), {
+      uid: currentUserData.uid,
+      displayName: currentUserData.displayName,
+      photoURL: currentUserData.photoURL || null,
+      totalXp: data.totalXp,
+      joinedAt: new Date().toISOString()
+    });
+    await window.FB.updateDoc(window.FB.doc(window.FB.db, 'groups', groupId), {
+      memberCount: window.FB.increment(1)
+    });
+    await window.FB.updateDoc(window.FB.doc(window.FB.db, 'users', currentUserData.uid), {
+      groupIds: window.FB.arrayUnion(groupId)
+    });
+    currentUserData.groupIds = [...(currentUserData.groupIds || []), groupId];
+    groupsCache.push({ id: groupId, ...groupData });
+    closeModal('joinGroupModal');
+    document.getElementById('joinGroupCode').value = '';
+    showToast('Du er med i ' + groupData.name + '!', true);
+    renderGroupsView();
+  } catch(err) {
+    console.error(err);
+    showToast('Feil: ' + (err.code || ''), false);
+  }
+}
+
+async function leaveGroup(groupId) {
+  if (!currentUserData) return;
+  if (!confirm('Forlate denne gruppen?')) return;
+  try {
+    await window.FB.deleteDoc(window.FB.doc(window.FB.db, 'groups', groupId, 'members', currentUserData.uid));
+    await window.FB.updateDoc(window.FB.doc(window.FB.db, 'groups', groupId), {
+      memberCount: window.FB.increment(-1)
+    });
+    await window.FB.updateDoc(window.FB.doc(window.FB.db, 'users', currentUserData.uid), {
+      groupIds: window.FB.arrayRemove(groupId)
+    });
+    currentUserData.groupIds = (currentUserData.groupIds || []).filter(id => id !== groupId);
+    groupsCache = groupsCache.filter(g => g.id !== groupId);
+    closeModal('groupDetailModal');
+    showToast('Forlot gruppen', true);
+    renderGroupsView();
+  } catch(err) { console.error(err); showToast('Feil', false); }
+}
+
+async function openGroupDetail(groupId) {
+  const group = groupsCache.find(g => g.id === groupId);
+  if (!group) return;
+  const content = document.getElementById('groupDetailContent');
+  content.innerHTML = `<div style="text-align:center; padding: 30px;">Laster...</div>`;
+  document.getElementById('groupDetailModal').classList.add('show');
+  try {
+    const snap = await window.FB.getDocs(window.FB.collection(window.FB.db, 'groups', groupId, 'members'));
+    const members = snap.docs.map(d => d.data()).sort((a,b) => (b.totalXp||0) - (a.totalXp||0));
+    content.innerHTML = `
+      <div class="modal-title">${escapeHtml(group.name)}</div>
+      <div class="modal-sub">${members.length} medlem${members.length === 1 ? '' : 'mer'}</div>
+      <div class="group-code-box">
+        <div class="group-code-label">Inviter med kode</div>
+        <div class="group-code-value">${group.code}</div>
+        <div class="group-code-hint">Andre kan bli med ved å skrive inn denne koden</div>
+      </div>
+      <div class="card-title" style="margin-top:16px;">Rangering (XP)</div>
+      ${members.map((m, i) => {
+        const rankIcon = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1);
+        const avatar = m.photoURL
+          ? `<img src="${m.photoURL}" alt="">`
+          : (m.displayName || '?').charAt(0).toUpperCase();
+        const isMe = m.uid === currentUserData.uid;
+        return `
+          <div class="member-row">
+            <div class="member-rank">${rankIcon}</div>
+            <div class="member-avatar">${avatar}</div>
+            <div class="member-info">
+              <div class="member-name">${escapeHtml(m.displayName || 'Bruker')}${isMe ? ' (deg)' : ''}</div>
+              <div class="member-sub">Nivå ${calcLevel(m.totalXp || 0).level}</div>
+            </div>
+            <div class="member-xp">${Math.round(m.totalXp || 0).toLocaleString('nb-NO')}</div>
+          </div>
+        `;
+      }).join('')}
+      <button class="btn btn-danger" onclick="leaveGroup('${groupId}')" style="margin-top:16px;">Forlat gruppe</button>
+      <button class="btn btn-secondary" onclick="closeModal('groupDetailModal')" style="margin-top:8px;">Lukk</button>
+    `;
+  } catch(err) {
+    console.error(err);
+    content.innerHTML = `<div class="modal-title">Feil</div><div class="modal-sub">Kunne ikke laste medlemmer</div><button class="btn btn-secondary" onclick="closeModal('groupDetailModal')" style="margin-top:16px;">Lukk</button>`;
+  }
+}
+
+function renderGroupsView() {
+  const el = document.getElementById('groupsContent');
+  if (!window.currentUser) {
+    el.innerHTML = `
+      <div class="card">
+        <div class="signin-prompt">
+          <div style="font-size: 48px; margin-bottom: 12px;">👥</div>
+          <div class="signin-prompt-title">Logg inn for å bruke grupper</div>
+          <div class="signin-prompt-sub">Lag en gruppe med vennene dine og se hvem som trener mest</div>
+          <button class="btn btn-primary" onclick="handleAuthClick()">Logg inn med Google</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-title">Mine grupper</div>
+      <div>
+        ${groupsCache.length === 0
+          ? '<div class="empty"><div class="empty-icon">👥</div><div>Du er ikke i noen grupper ennå</div></div>'
+          : groupsCache.map(g => `
+              <div class="group-card" onclick="openGroupDetail('${g.id}')">
+                <div class="group-card-top">
+                  <div class="group-card-name">${escapeHtml(g.name)}</div>
+                  <div class="group-card-code">${g.code}</div>
+                </div>
+                <div class="group-card-stats">${g.memberCount || 1} medlemmer</div>
+              </div>
+            `).join('')
+        }
+      </div>
+      <div class="form-row" style="margin-top: 12px;">
+        <button class="btn btn-primary" onclick="document.getElementById('createGroupModal').classList.add('show')">+ Lag gruppe</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('joinGroupModal').classList.add('show')">Bli med</button>
+      </div>
+    </div>
+  `;
+}
 
 //// ========== INIT ==========
 load();
